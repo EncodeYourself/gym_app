@@ -1,0 +1,90 @@
+2026-08-23 22:30:42 | ERROR    | __main__ | main.py:58 | Failed to read database metadata
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/main.py", line 55, in render_welcome
+    tables = get_table_names(DB_PATH)
+             ^^^^^^^^^^^^^^^
+NameError: name 'get_table_names' is not defined
+2026-08-24 16:40:04 | ERROR    | app.crud.classes | classes.py:71 | Failed to add class for name=Boxing, instructor=Alex, schedule_day=Friday, 
+            start_time=19:30, duration=90, description=Elegant ways of beating people up., is_active=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 58, in add_class
+    try:
+    
+sqlite3.OperationalError: no such table: classes
+2026-08-24 16:40:04 | ERROR    | __main__ | 2_classes.py:198 | Database error while adding class: name=Boxing
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 58, in add_class
+    try:
+    
+sqlite3.OperationalError: no such table: classes
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/pages/2_classes.py", line 168, in render_add_class_form
+    new_id = add_class(
+        name=name.strip(),
+    ...<5 lines>...
+        is_active=1 if is_active else 0,
+    )
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 75, in add_class
+    name, instructor, schedule_day, start_time,
+RuntimeError: Failed to add class: no such table: classes
+2026-08-24 16:44:41 | ERROR    | app.crud.classes | classes.py:71 | Failed to add class for name=Boxing, instructor=Alex, schedule_day=Friday, 
+            start_time=19:30, duration=90, description=Elegant ways of beating people up., is_active=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 58, in add_class
+    try:
+    
+sqlite3.OperationalError: table classes has no column named duration
+2026-08-24 16:44:41 | ERROR    | __main__ | 2_classes.py:198 | Database error while adding class: name=Boxing
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 58, in add_class
+    try:
+    
+sqlite3.OperationalError: table classes has no column named duration
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/pages/2_classes.py", line 168, in render_add_class_form
+    new_id = add_class(
+        name=name.strip(),
+    ...<5 lines>...
+        is_active=1 if is_active else 0,
+    )
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 75, in add_class
+    name, instructor, schedule_day, start_time,
+RuntimeError: Failed to add class: table classes has no column named duration
+2026-08-24 16:45:29 | ERROR    | __main__ | 2_classes.py:198 | Database error while adding class: name=Boxing
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/pages/2_classes.py", line 168, in render_add_class_form
+    new_id = add_class(
+        name=name.strip(),
+    ...<5 lines>...
+        is_active=1 if is_active else 0,
+    )
+TypeError: add_class() got an unexpected keyword argument 'duration_minutes'
+2026-08-24 16:47:40 | ERROR    | __main__ | 2_classes.py:198 | Database error while adding class: name=Boxing
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/pages/2_classes.py", line 168, in render_add_class_form
+    new_id = add_class(
+        name=name.strip(),
+    ...<5 lines>...
+        is_active=1 if is_active else 0,
+    )
+TypeError: add_class() got an unexpected keyword argument 'duration_minutes'
+2026-08-24 16:49:03 | ERROR    | __main__ | 2_classes.py:198 | Database error while adding class: name=Boxing
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/pages/2_classes.py", line 168, in render_add_class_form
+    new_id = add_class(
+        name=name.strip(),
+    ...<5 lines>...
+        is_active=1 if is_active else 0,
+    )
+TypeError: add_class() got an unexpected keyword argument 'duration_minutes'
+2026-08-26 22:29:07 | ERROR    | app.crud.classes | classes.py:314 | Failed to search classes with term=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 294, in search_classes
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such column: created_at
