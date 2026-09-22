@@ -40,7 +40,6 @@ DB_PATH = "app/data/business.db"
 def load_table_data(db_path):
     conn = sqlite3.connect(db_path)
     query = f'''SELECT
-    a.id,
     a.student_id,
     s.last_name   AS student_last_name,
     s.first_name  AS student_first_name,
@@ -52,6 +51,7 @@ def load_table_data(db_path):
     s.phone       AS student_phone,
     c.schedule_day AS class_day,
     c.start_time  AS class_time,
+    a.id,
     a.created_at
     FROM attendance a
     JOIN students s ON s.id = a.student_id
@@ -247,43 +247,53 @@ if st.session_state.show_add_form:
 
    
 # --- Display table with row selection ---
+active_df = None
+event = None
+
 if st.session_state.search_results is None:
-    df = load_table_data(DB_PATH)
-    st.markdown(f"**Total students:** {len(df):,}")
+    active_df = load_table_data(DB_PATH)
     event = st.dataframe(
-    df,
-    selection_mode="single-row",
-    on_select="rerun",
-    key="main_table"
-)
-# --- Capture selection ---
-    if event and event.selection and event.selection.rows:
-        row_idx = event.selection.rows[0]
-        # Convert Polars row to dict (named=True gives a dict)
-        st.session_state.selected_row_id = df.row(row_idx, named=True)
-    else:
-        st.session_state.selected_row_id = None
+        active_df,
+        selection_mode="single-row",
+        on_select="rerun",
+        key="main_table",
+    )
 else:
     if len(st.session_state.search_results) > 0:
-        # Convert results to Polars DataFrame
-        results_df = pl.DataFrame(st.session_state.search_results, 
-            schema=attendance.ALLOWED_ATTENDANCE_FIELDS, 
-            orient='row')
+        active_df = pl.DataFrame(
+            st.session_state.search_results,
+            schema=attendance.ALLOWED_ATTENDANCE_FIELDS,
+            orient="row",
+        )
         event = st.dataframe(
-            results_df,
+            active_df,
             selection_mode="single-row",
             on_select="rerun",
-            key="search_table"
+            key="search_table",
         )
-        # --- Capture selection ---
-        if event and event.selection and event.selection.rows:
-            row_idx = event.selection.rows[0]
-            st.session_state.selected_row_id = results_df.row(row_idx, named=True)
-        else:
-            st.session_state.selected_row_id = None
     else:
         st.info("No matching records found.")
-        event = None
+
+# --- Capture selection (bounds-checked) ---
+if (
+    event
+    and event.selection
+    and event.selection.rows
+    and active_df is not None
+):
+    row_idx = event.selection.rows[0]
+    if 0 <= row_idx < active_df.height:
+        st.session_state.selected_row_id = active_df.row(row_idx, named=True)
+    else:
+        # Streamlit kept a selection from a previous, larger dataframe.
+        logger.warning(
+            "Stale row selection: index=%s, height=%s — clearing",
+            row_idx,
+            active_df.height,
+        )
+        st.session_state.selected_row_id = None
+else:
+    st.session_state.selected_row_id = None
 
 # --- Edit Attendance Form ---
 if st.session_state.show_edit_form:
@@ -454,3 +464,43 @@ if st.session_state.show_edit_form:
                             st.error(f"Validation error: {e}")
                         except Exception as e:
                             st.error(f"Database error: {e}")
+
+
+# --- Delete Attendance Form ---
+if st.session_state.show_delete_form:
+    try: 
+        attendance_id = st.session_state.selected_row_id['id']
+    except: 
+        st.error(st.session_state.selected_row_id)
+    attendance_date = st.session_state.selected_row_id.get('attendance_date', '?')
+    student_name = (
+        f"{st.session_state.selected_row_id.get('student_first_name', '')} "
+        f"{st.session_state.selected_row_id.get('student_last_name', '')}"
+    ).strip()
+    class_name = st.session_state.selected_row_id.get('class_name', '?')
+
+    with st.container():
+        st.warning(f"⚠️ **Delete Attendance**")
+        st.write(
+            f"Are you sure you want to delete the attendance record for "
+            f"**{student_name}** in **{class_name}** on **{attendance_date}**?"
+        )
+        st.write("This action **cannot be undone**.")
+
+        col_btn1, col_btn2, col_btn3 = st.columns(3)
+        with col_btn1:
+            if st.button("🗑️ Yes, Delete", use_container_width=True, type="primary"):
+                try:
+                    attendance.delete_attendance(attendance_id)
+                    st.success("✅ Attendance record deleted successfully!")
+                    st.session_state.show_delete_form = False
+                    st.session_state.selected_row_id = None
+                    st.session_state.search_results = None  # Force refresh
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error deleting attendance: {e}")
+
+        with col_btn2:
+            if st.button("❌ Cancel", use_container_width=True):
+                st.session_state.show_delete_form = False
+                st.rerun()

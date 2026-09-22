@@ -3413,3 +3413,189 @@ sqlite3.OperationalError: no such column: created_at
 2026-09-21 05:36:26 | INFO     | root | Logging initialized. Level=INFO, directory=logs
 2026-09-21 05:36:26 | INFO     | root | Logging initialized. Level=INFO, directory=logs
 2026-09-21 05:36:27 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:55:58 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:55:59 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:00 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:04 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:07 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:09 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:11 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:12 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:28 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:29 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:31 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:32 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:56:43 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:58:37 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:58:40 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:58:40 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:58:43 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 22:58:44 | INFO     | app.crud.attendance | Attendance deleted: id=1
+2026-09-21 22:58:44 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:22 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:25 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:25 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:25 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:30 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:30 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:30 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:30 | INFO     | app.crud.attendance | Attendance added: id=3, student_id=1, class_id=1, date=2026-09-21, type=membership
+2026-09-21 23:03:30 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:30 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:30 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:31 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:31 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:31 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:36 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:36 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:36 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:36 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:36 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:36 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:45 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:45 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:45 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:46 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:46 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:46 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:46 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:46 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:46 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:47 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:47 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:47 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:47 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:47 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:47 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:48 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:48 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:48 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:48 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:48 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:48 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:48 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-21 23:03:48 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-21 23:03:50 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:51 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:53 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:54 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:55 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:55 | INFO     | app.crud.attendance | Attendance deleted: id=2
+2026-09-21 23:03:55 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-21 23:03:55 | WARNING  | __main__ | Stale row selection: index=1, height=1 — clearing
+2026-09-22 04:55:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:55:49 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:55:51 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:55:52 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:55:55 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:55:55 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:55:55 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:56:02 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:56:02 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:56:02 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:56:09 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:56:09 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:56:09 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:56:09 | INFO     | app.crud.attendance | Attendance added: id=4, student_id=1, class_id=2, date=2026-09-22, type=membership
+2026-09-22 04:56:09 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:56:09 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:56:09 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:56:35 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:56:35 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:56:35 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:56:54 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:56:54 | INFO     | app.crud.students | No students found: term=None, filters={'group_type': 'child'}
+2026-09-22 04:56:54 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:56:57 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:56:57 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:56:57 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:57:02 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:57:02 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:57:02 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:57:02 | INFO     | app.crud.attendance | Attendance added: id=5, student_id=1, class_id=1, date=2026-09-22, type=membership
+2026-09-22 04:57:02 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:57:02 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:57:02 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:57:30 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:57:30 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:57:30 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:57:34 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:57:34 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:57:34 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:57:34 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:57:34 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:57:34 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:57:37 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:59:11 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 04:59:11 | INFO     | app.crud.students | Student search: term=None, filters={'group_type': 'adult'}, results=1
+2026-09-22 04:59:11 | INFO     | app.crud.classes | Class search: term=None, filters={}, results=2
+2026-09-22 04:59:12 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:00:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:02:23 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:02:26 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:02:26 | INFO     | app.crud.attendance | Attendance deleted: id=3
+2026-09-22 05:02:26 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:02:26 | WARNING  | __main__ | Stale row selection: index=2, height=2 — clearing
+2026-09-22 05:02:42 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:02:42 | WARNING  | __main__ | Stale row selection: index=2, height=2 — clearing
+2026-09-22 05:03:30 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:49 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:49 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:54 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:54 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:55 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:11:55 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:12:14 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:12:15 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:12:15 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:12:15 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:12:22 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:14:07 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:17:52 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:17:58 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:18:14 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:18:15 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:18:32 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:18:32 | INFO     | app.crud.plans | Plan added: id=1, name=Full, price=7000, duration_weeks=4, max_trainings=12, is_unlimited=0, is_single=0, is_active=1
+2026-09-22 05:18:32 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:18:55 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:18:56 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:20:46 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:21:56 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:21:56 | INFO     | app.crud.plans | Plan added: id=2, name=Half, price=6000, duration_weeks=4, max_trainings=8, is_unlimited=0, is_single=0, is_active=1
+2026-09-22 05:21:56 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:21:58 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:21:59 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:22:05 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:22:05 | INFO     | app.crud.plans | Plan updated: id=2, fields=['name', 'price', 'duration_weeks', 'max_trainings', 'is_unlimited', 'is_single', 'is_active']
+2026-09-22 05:22:05 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:22:22 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:22:26 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:22:26 | INFO     | app.crud.plans | Plan updated: id=2, fields=['name', 'price', 'duration_weeks', 'max_trainings', 'is_unlimited', 'is_single', 'is_active']
+2026-09-22 05:22:26 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:23:50 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:24:47 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:24:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:24:49 | INFO     | app.crud.plans | Plan deleted: id=2
+2026-09-22 05:24:49 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:24:49 | WARNING  | __main__ | Stale row selection: index=1, height=1 — clearing
+2026-09-22 05:24:54 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:24:56 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:28:22 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:28:23 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:40 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:41 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:41 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:41 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:51 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:51 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:52 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:52 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:31:59 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-22 05:32:00 | INFO     | root | Logging initialized. Level=INFO, directory=logs

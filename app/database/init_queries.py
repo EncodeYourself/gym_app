@@ -222,6 +222,17 @@ CREATE TABLE IF NOT EXISTS substitutions (
 );
 '''
 
+TABLE_CREDIT  = '''CREATE TABLE IF NOT EXISTS student_credits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    amount INTEGER NOT NULL,              -- + add, − consume
+    reason TEXT,
+    payment_id INTEGER,                   -- optional link to the payment that caused it
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT,
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL
+);
+'''
 # VIEW_CASHFLOW = '''
 # CREATE VIEW cashflow AS
 # SELECT
