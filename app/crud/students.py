@@ -469,3 +469,84 @@ def find_students(
             kwargs,
         )
         raise RuntimeError(f"Failed to search students: {e}") from e
+
+def adjust_credit(student_id: int, delta: int, reason: str = '') -> int:
+    """
+    Adjust a student's credit balance by `delta`.
+
+    Positive delta adds credit (e.g. overpayment recorded).
+    Negative delta consumes credit (e.g. applying it to a payment).
+    Zero delta is a no-op but still validates the student exists.
+
+    Args:
+        student_id: Positive integer id of the student.
+        delta: Integer adjustment. May be positive, negative, or zero.
+        reason: Optional free-text explanation, stored in the log line.
+
+    Returns:
+        The student's new credit balance.
+
+    Raises:
+        ValueError: If student_id or delta is invalid, reason is not a
+            string, or the student does not exist.
+        RuntimeError: If the database operation fails.
+    """
+
+    # --- Validate student_id ---
+    if isinstance(student_id, bool) or not isinstance(student_id, int) or student_id <= 0:
+        raise ValueError(
+            f"student_id must be a positive integer, got: {student_id!r}"
+        )
+
+    # --- Validate delta ---
+    if isinstance(delta, bool) or not isinstance(delta, int):
+        raise ValueError(f"delta must be an integer, got: {delta!r}")
+
+    # --- Normalize reason ---
+    if reason is None:
+        reason = ''
+    if not isinstance(reason, str):
+        raise ValueError(f"reason must be a string, got: {reason!r}")
+    reason = reason.strip()
+
+    try:
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "UPDATE students "
+                "SET credit_balance = credit_balance + ?, "
+                "    updated_at = datetime('now', 'localtime') "
+                "WHERE id = ?",
+                (delta, student_id),
+            )
+
+            if cursor.rowcount == 0:
+                # Student doesn't exist. Roll back the (no-op) update
+                # and surface this as a caller error.
+                conn.rollback()
+                raise ValueError(f"Student {student_id} not found.")
+
+            row = conn.execute(
+                "SELECT credit_balance FROM students WHERE id = ?",
+                (student_id,),
+            ).fetchone()
+            new_balance = row[0]
+
+            conn.commit()
+
+        logger.info(
+            "Credit adjusted: student_id=%s, delta=%s, new_balance=%s, reason=%s",
+            student_id,
+            delta,
+            new_balance,
+            reason or "—",
+        )
+        return new_balance
+
+    except sqlite3.Error as e:
+        logger.exception("Failed to adjust credit for student_id=%s", student_id)
+        raise RuntimeError(f"Failed to adjust credit: {e}") from e
+
+def get_credit_balance(student_id: int) -> int:
+    """Read a student's current credit balance."""
+    # ... SELECT credit_balance FROM students WHERE id = ? ...
+    return 0

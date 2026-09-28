@@ -3599,3 +3599,42 @@ sqlite3.OperationalError: no such column: created_at
 2026-09-22 05:31:52 | INFO     | root | Logging initialized. Level=INFO, directory=logs
 2026-09-22 05:31:59 | INFO     | root | Logging initialized. Level=INFO, directory=logs
 2026-09-22 05:32:00 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:46:52 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:46:54 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:46:55 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:46:56 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:46:59 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:47:12 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:47:13 | INFO     | app.crud.plans | Plan added: id=1, name=3x, price=7000, duration_weeks=4, max_trainings=12, is_unlimited=0, is_single=0, is_active=1
+2026-09-28 05:47:13 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:47:24 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:47:35 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:47:39 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:47:39 | INFO     | app.crud.plans | Plan added: id=2, name=Unlimited, price=8000, duration_weeks=4, max_trainings=None, is_unlimited=1, is_single=0, is_active=1
+2026-09-28 05:47:39 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:47:43 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:48:00 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:48:00 | INFO     | app.crud.plans | Plan added: id=3, name=2x, price=6000, duration_weeks=4, max_trainings=8, is_unlimited=0, is_single=0, is_active=1
+2026-09-28 05:48:00 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:48:06 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:48:07 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:48:13 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 05:48:13 | INFO     | app.crud.plans | Plan updated: id=2, fields=['name', 'price', 'duration_weeks', 'max_trainings', 'is_unlimited', 'is_single', 'is_active']
+2026-09-28 05:48:13 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:07:47 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:07:47 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:07:51 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:07:54 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:07:57 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:09:19 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:15:46 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:15:48 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:15:49 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:15:49 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:17:02 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:17:02 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:17:03 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:17:03 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:17:03 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:17:03 | INFO     | root | Logging initialized. Level=INFO, directory=logs
+2026-09-28 12:17:03 | INFO     | root | Logging initialized. Level=INFO, directory=logs

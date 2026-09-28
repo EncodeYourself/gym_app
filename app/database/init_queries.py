@@ -3,19 +3,19 @@ TABLE_STUDENTS = '''
 CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     last_name TEXT NOT NULL,
-    first_name TEXT NOT NULL, 
-    date_of_birth DATE, 
-    phone TEXT,
-    telegram_handle TEXT UNIQUE,  -- Added UNIQUE to prevent duplicate bot users
-    address TEXT, 
-    emergency_contact_phone TEXT, 
+    first_name TEXT NOT NULL,
+    date_of_birth DATE,
+    phone TEXT NOT NULL,
+    telegram_handle TEXT UNIQUE,
+    address TEXT,
+    emergency_contact_phone TEXT,
     emergency_contact_name TEXT,
-    group_type TEXT CHECK (group_type IN ('adult', 'child')),  -- Renamed 'group' to avoid SQL keyword
-    comment TEXT, 
+    group_type TEXT CHECK (group_type IN ('adult', 'child')),
+    comment TEXT,
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
+    credit_balance INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
-
 );
 '''
 
@@ -59,17 +59,21 @@ TABLE_PAYMENTS = '''
 CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
-    plan_id INTEGER NOT NULL,
     amount_paid INTEGER NOT NULL CHECK (amount_paid >= 0),
     payment_date TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     method TEXT NOT NULL CHECK (method IN ('cash', 'card', 'bank_transfer', 'other')),
+    payment_category TEXT NOT NULL DEFAULT 'membership_new'
+        CHECK (payment_category IN (
+            'membership_new', 'membership_renewal', 'membership_upgrade',
+            'drop_in', 'credit_payment', 'refund', 'other'
+        )),
     receipt_number TEXT UNIQUE,
     notes TEXT,
-    status TEXT NOT NULL DEFAULT 'paid' CHECK (status IN ('paid', 'refunded', 'voided')),
+    status TEXT NOT NULL DEFAULT 'paid'
+        CHECK (status IN ('paid', 'refunded', 'voided')),
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT,
-    FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE RESTRICT
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT
 );
 '''
 
@@ -119,19 +123,30 @@ CREATE TABLE IF NOT EXISTS plans (
 
 TABLE_MEMBERSHIP = '''
 CREATE TABLE IF NOT EXISTS memberships (
-    membership_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    student_id INTEGER NOT NULL UNIQUE,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
     plan_id INTEGER NOT NULL,
-    start_date TEXT NOT NULL,          -- YYYY-MM-DD
-    expiry_date TEXT NOT NULL,         
+    start_date TEXT NOT NULL,
+    expiry_date TEXT NOT NULL,
     used_trainings INTEGER NOT NULL DEFAULT 0 CHECK (used_trainings >= 0),
     status TEXT NOT NULL DEFAULT 'active'
-        CHECK (status IN ('active', 'on_hold', 'expired', 'completed', 'cancelled')),
+        CHECK (status IN ('active', 'on_hold', 'expired',
+                          'completed', 'cancelled', 'upgraded')),
+    upgraded_from INTEGER
+        REFERENCES memberships(id) ON DELETE SET NULL,
+    notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (student_id) REFERENCES students (id),
-    FOREIGN KEY (plan_id) REFERENCES plans (id)
-);'''
+    FOREIGN KEY (plan_id) REFERENCES plans (id),
+    CHECK (upgraded_from IS NULL OR upgraded_from != id),
+    UNIQUE (upgraded_from)
+);
+'''
+INDEX_MEMBERSHIP = '''
+CREATE INDEX IF NOT EXISTS idx_memberships_student
+    ON memberships(student_id);
+'''
 
 TABLE_ATTENDANCE = '''
 CREATE TABLE IF NOT EXISTS attendance (
@@ -275,5 +290,5 @@ CREATE TABLE IF NOT EXISTS membership_holds (
         CHECK (status IN ('active', 'ended', 'cancelled')),
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-    FOREIGN KEY (membership_id) REFERENCES memberships(membership_id) ON DELETE CASCADE
+    FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE CASCADE
 );'''

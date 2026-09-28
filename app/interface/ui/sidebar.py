@@ -90,13 +90,16 @@ def render_grouped_sidebar(
         're_expenses': st.Page(
             _page_path('10_re_expenses.py')
         ),
+        'membership': st.Page(
+            _page_path('11_memberships.py')
+        )
         
     }
 
     
     nav_groups: Dict[str, List[st.Page]] = {}
 
-    nav_groups['Main'] = [all_pages['main'], all_pages['students'], all_pages['trainers']]
+    nav_groups['Main'] = [all_pages['main'], all_pages['students'], all_pages['trainers'], all_pages['membership']]
 
     
     nav_groups['Operation'] = [

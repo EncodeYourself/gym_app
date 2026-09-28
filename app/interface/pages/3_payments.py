@@ -5,24 +5,6 @@ import polars as pl
 import streamlit as st
 import sqlite3
 
-TABLE_PAYMENTS = '''
-CREATE TABLE IF NOT EXISTS payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    student_id INTEGER NOT NULL,
-    plan_id INTEGER NOT NULL,
-    amount_paid INTEGER NOT NULL CHECK (amount_paid >= 0),
-    payment_date TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-    method TEXT NOT NULL CHECK (method IN ('cash', 'card', 'bank_transfer', 'other')),
-    receipt_number TEXT UNIQUE,
-    notes TEXT,
-    status TEXT NOT NULL DEFAULT 'paid' CHECK (status IN ('paid', 'refunded', 'voided')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
-    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT,
-    FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE RESTRICT
-);
-'''
-
 def load_table_data(db_path, table_name):
     conn = sqlite3.connect(db_path)
     query = f'SELECT * FROM {table_name}'

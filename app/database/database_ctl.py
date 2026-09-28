@@ -26,8 +26,8 @@ def init_db(queries):
         for query in queries:
             try:
                 conn.execute(query)
-            except:
-                print(query)
+            except Exception as e:
+                print(query, e)
                 raise NameError
     
         conn.commit()
@@ -47,10 +47,46 @@ def reset_db():
         conn.commit()
         print("⚠️  All tables dropped!")
 
+def make_updated_at_trigger(table: str, pk_column: str) -> str:
+    """
+    Return the CREATE TRIGGER statement that keeps `updated_at`
+    current on UPDATE for a table.
+
+    Args:
+        table: Table name (e.g. 'students').
+        pk_column: Primary key column name (e.g. 'id',
+            or 'membership_id' for memberships).
+    """
+    trigger_name = f"trg_{table}_updated_at"
+    return f"""
+        CREATE TRIGGER IF NOT EXISTS {trigger_name}
+        AFTER UPDATE ON {table}
+        FOR EACH ROW
+        WHEN OLD.updated_at IS NEW.updated_at
+        BEGIN
+            UPDATE {table}
+            SET updated_at = datetime('now', 'localtime')
+            WHERE {pk_column} = NEW.{pk_column};
+        END;
+        """
 # main.py
 
 
-# tables = [v for k, v in vars(all_queries).items() 
-#           if k.startswith("TABLE_") and isinstance(v, str)]
+#Only pull the constants, not the imports/dunders
+QUERY_PREFIXES = ("TABLE_", "INDEX_")
 
-# init_db(tables)
+tables = [
+    v for k, v in vars(all_queries).items()
+    if k.startswith(QUERY_PREFIXES) and isinstance(v, str)
+]
+TRIGGERS = [
+    make_updated_at_trigger("students", "id"),
+    make_updated_at_trigger("trainers", "id"),
+    make_updated_at_trigger("plans", "id"),
+    make_updated_at_trigger("payments", "id"),
+    make_updated_at_trigger("substitutions", "id"),
+    make_updated_at_trigger("attendance", "id"),
+    make_updated_at_trigger("memberships", "id"),
+]
+#init_db(tables)
+#init_db(TRIGGERS)
