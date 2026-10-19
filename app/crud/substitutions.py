@@ -102,7 +102,7 @@ def add_substitution(
     try:
         with get_connection() as conn:
             cursor = conn.execute(query, list(values.values()))
-            conn.commit()
+            
             new_id = cursor.lastrowid
 
         logger.info(
@@ -238,7 +238,7 @@ def update_substitution(substitution_id: int, **kwargs: Any) -> bool:
                 f"UPDATE substitutions SET {set_clause} WHERE id = ?",
                 values,
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No substitution found with id=%s", substitution_id)
@@ -284,7 +284,7 @@ def delete_substitution(substitution_id: int) -> bool:
                 "DELETE FROM substitutions WHERE id = ?",
                 (substitution_id,),
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No substitution found with id=%s", substitution_id)

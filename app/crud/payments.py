@@ -139,7 +139,7 @@ def add_payment(
     try:
         with get_connection() as conn:
             cursor = conn.execute(query, list(data.values()))
-            conn.commit()
+            
             new_id = cursor.lastrowid
 
         logger.info(
@@ -191,7 +191,7 @@ def delete_payment(payment_id: int) -> bool:
                 "DELETE FROM payments WHERE id = ?",
                 (payment_id,)
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No payment found with id=%s", payment_id)
@@ -307,7 +307,7 @@ def update_payment(payment_id: int, **kwargs: Any) -> bool:
                 f"UPDATE payments SET {set_clause} WHERE id = ?",
                 values
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No payment found with id=%s", payment_id)

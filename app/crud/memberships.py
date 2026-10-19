@@ -124,7 +124,7 @@ def add_membership(
     try:
         with get_connection() as conn:
             cursor = conn.execute(query, list(data.values()))
-            conn.commit()
+            
             new_id = cursor.lastrowid
 
         logger.info(
@@ -299,7 +299,7 @@ def update_membership(membership_id: int, **kwargs: Any) -> bool:
                 f"UPDATE memberships SET {set_clause} WHERE id = ?",
                 values,
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning(
@@ -340,10 +340,16 @@ def delete_membership(membership_id: int) -> bool:
     row). To end a membership cleanly, use update_membership to set
     status='cancelled' instead — that preserves the row for history.
 
-    Note on the self-referential FK: if another membership has
-    upgraded_from pointing at this row, that successor's upgraded_from
-    is set to NULL (ON DELETE SET NULL). The successor row itself
-    survives; only the chain link is broken.
+    Two foreign-key side effects are possible:
+
+    - If another membership has upgraded_from pointing at this row, that
+      successor's upgraded_from is set to NULL (ON DELETE SET NULL). The
+      successor row survives; only the chain link is broken.
+
+    - If any payment references this membership, the delete is refused
+      (ON DELETE RESTRICT) and ValueError is raised. Payments are the
+      only table that blocks deletion; attendance and credit entries use
+      SET NULL and will be unlinked automatically.
 
     Args:
         membership_id: Positive integer id of the membership to delete.
@@ -352,7 +358,8 @@ def delete_membership(membership_id: int) -> bool:
         True if the membership was deleted, False if the id did not exist.
 
     Raises:
-        ValueError: If membership_id is not a positive integer.
+        ValueError: If membership_id is not a positive integer, or the
+            membership is referenced by at least one payment.
         RuntimeError: If the database operation fails.
     """
 
@@ -368,8 +375,7 @@ def delete_membership(membership_id: int) -> bool:
             # warning in the log is cheap and makes the side effect
             # visible if it ever surprises someone.
             successor = conn.execute(
-                "SELECT membership_id FROM memberships "
-                "WHERE upgraded_from = ?",
+                "SELECT id FROM memberships WHERE upgraded_from = ?",
                 (membership_id,),
             ).fetchone()
 
@@ -379,27 +385,38 @@ def delete_membership(membership_id: int) -> bool:
                     "of membership id=%s. The successor's upgraded_from "
                     "will be set to NULL.",
                     membership_id,
-                    successor[0],
+                    successor["id"],
                 )
 
             cursor = conn.execute(
                 "DELETE FROM memberships WHERE id = ?",
                 (membership_id,),
             )
-            conn.commit()
 
             if cursor.rowcount == 0:
                 logger.warning("No membership found with id=%s", membership_id)
                 return False
 
-            logger.info("Membership deleted: id=%s", membership_id)
-            return True
+        # Commit fired on context exit. Log only after durability.
+        logger.info("Membership deleted: id=%s", membership_id)
+        return True
+
+    except sqlite3.IntegrityError as e:
+        # Payments.membership_id is ON DELETE RESTRICT — any payment
+        # linked to this membership blocks the delete.
+        logger.warning(
+            "Cannot delete membership id=%s: referenced by payments",
+            membership_id,
+        )
+        raise ValueError(
+            "This membership is referenced by at least one payment and "
+            "cannot be deleted. To end it, use update_membership with "
+            "status='cancelled'."
+        ) from e
 
     except sqlite3.Error as e:
         logger.exception("Failed to delete membership id=%s", membership_id)
         raise RuntimeError(f"Failed to delete membership: {e}") from e
-
-
 
 
 def find_membership(
@@ -579,3 +596,148 @@ def find_membership(
             kwargs,
         )
         raise RuntimeError(f"Failed to search memberships: {e}") from e
+
+def get_active_membership(student_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Return the student's currently active membership, or None.
+
+    A membership is considered active when its status is 'active'.
+    At most one such row per student is expected; if the database
+    contains more (due to a race, a manual edit, or a bug elsewhere),
+    the most recently started one is returned and a warning is logged.
+
+    Args:
+        student_id: Positive integer id of the student.
+
+    Returns:
+        A dict with the membership row, or None if the student has no
+        active membership.
+
+    Raises:
+        ValueError: If student_id is not a positive integer.
+        RuntimeError: If the database operation fails.
+    """
+
+    if isinstance(student_id, bool) or not isinstance(student_id, int) or student_id <= 0:
+        raise ValueError(
+            f"student_id must be a positive integer, got: {student_id!r}"
+        )
+
+    query = '''
+    SELECT
+    m.id, m.student_id, m.plan_id, m.start_date, m.expiry_date,
+    m.used_trainings, m.status, m.upgraded_from, m.notes,
+    m.created_at, m.updated_at,
+    p.max_trainings   AS plan_max_trainings,
+    p.is_unlimited    AS plan_is_unlimited
+    FROM memberships m
+    JOIN plans p ON p.id = m.plan_id
+    WHERE m.student_id = ? AND m.status = 'active'
+    ORDER BY m.start_date DESC, m.id DESC
+    '''
+
+    try:
+        with get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (student_id,))
+            rows = cursor.fetchall()
+
+            if not rows:
+                return None
+
+            if len(rows) > 1:
+                # Not expected: the workflow enforces one active per student.
+                # If this fires, something upstream let a second one through.
+                logger.warning(
+                    "Student %s has %d active memberships (ids: %s); "
+                    "returning the most recent.",
+                    student_id,
+                    len(rows),
+                    [row['id'] for row in rows],
+                )
+
+            return dict(rows[0])
+
+    except sqlite3.Error as e:
+        logger.exception(
+            "Failed to fetch active membership for student_id=%s", student_id
+        )
+        raise RuntimeError(
+            f"Failed to fetch active membership: {e}"
+        ) from e
+
+
+def _increment_used_trainings(conn, membership_id: int) -> int:
+    """
+    Increment a membership's used_trainings by 1.
+
+    Private — takes an open connection and does not commit; the caller
+    owns the transaction.
+
+    Args:
+        conn: An open sqlite3.Connection.
+        membership_id: Positive integer id of the membership.
+
+    Returns:
+        The membership's used_trainings after the increment.
+
+    Raises:
+        ValueError: If membership_id is not a positive integer, or the
+            membership does not exist.
+    """
+
+    if isinstance(membership_id, bool) or not isinstance(membership_id, int) or membership_id <= 0:
+        raise ValueError(
+            f"membership_id must be a positive integer, got: {membership_id!r}"
+        )
+
+    cursor = conn.execute(
+        "UPDATE memberships "
+        "SET used_trainings = used_trainings + 1 "
+        "WHERE id = ?",
+        (membership_id,),
+    )
+
+    if cursor.rowcount == 0:
+        raise ValueError(f"Membership {membership_id} not found.")
+
+    row = conn.execute(
+        "SELECT used_trainings FROM memberships WHERE id = ?",
+        (membership_id,),
+    ).fetchone()
+
+    return row[0]
+
+def _set_membership_status(conn, membership_id: int, status: str) -> None:
+    """
+    Set a membership's status. Private — takes an open connection and
+    does not commit; the caller owns the transaction.
+
+    Args:
+        conn: An open sqlite3.Connection.
+        membership_id: Positive integer id of the membership.
+        status: One of VALID_MEMBERSHIP_STATUSES.
+
+    Raises:
+        ValueError: If membership_id or status is invalid, or the
+            membership does not exist.
+    """
+
+    if isinstance(membership_id, bool) or not isinstance(membership_id, int) or membership_id <= 0:
+        raise ValueError(
+            f"membership_id must be a positive integer, got: {membership_id!r}"
+        )
+
+    if status not in VALID_MEMBERSHIP_STATUSES:
+        raise ValueError(
+            f"Invalid status: {status}. "
+            f"Expected one of: {sorted(VALID_MEMBERSHIP_STATUSES)}"
+        )
+
+    cursor = conn.execute(
+        "UPDATE memberships SET status = ? WHERE id = ?",
+        (status, membership_id),
+    )
+
+    if cursor.rowcount == 0:
+        raise ValueError(f"Membership {membership_id} not found.")

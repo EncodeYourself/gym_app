@@ -78,7 +78,7 @@ def add_expense(
     try:
         with get_connection() as conn:
             cursor = conn.execute(query, list(data.values()))
-            conn.commit()
+            
             new_id = cursor.lastrowid
 
         logger.info(
@@ -119,7 +119,7 @@ def delete_expense(expense_id: int) -> bool:
                 "DELETE FROM expenses WHERE id = ?",
                 (expense_id,)
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No expense found with id=%s", expense_id)
@@ -213,7 +213,7 @@ def update_expense(expense_id: int, **kwargs: Any) -> bool:
                 f"UPDATE expenses SET {set_clause} WHERE id = ?",
                 values
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No expense found with id=%s", expense_id)

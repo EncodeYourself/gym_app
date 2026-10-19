@@ -92,8 +92,10 @@ def render_grouped_sidebar(
         ),
         'membership': st.Page(
             _page_path('11_memberships.py')
+        ),
+        'payees' : st.Page(
+            _page_path('12_payees.py')
         )
-        
     }
 
     
@@ -109,7 +111,7 @@ def render_grouped_sidebar(
     
     nav_groups['Finance'] = [
         all_pages[key]
-        for key in ('payments', 'finance', 'plans', 'expenses', 're_expenses')
+        for key in ('payments', 'finance', 'plans', 'expenses', 're_expenses', 'payees')
     ]
     
 

@@ -1,6 +1,7 @@
 from app.database.database_ctl import get_connection
 import logging 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
+import sqlite3
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ ALLOWED_PLAN_FIELDS = {
     'is_single', 
     'is_active'
 }
-
+ALLOWED_PLAN_FILTERS = {'is_active', 'is_single', 'is_unlimited'}
 
 def add_plan(
     name: str,
@@ -128,7 +129,7 @@ def add_plan(
     try:
         with get_connection() as conn:
             cursor = conn.execute(query, list(data.values()))
-            conn.commit()
+            
             new_id = cursor.lastrowid
 
         logger.info(
@@ -152,48 +153,6 @@ def add_plan(
             price,
         )
         raise RuntimeError(f"Failed to add plan: {e}") from e
-        
-def delete_plan(plan_id: int) -> bool:
-    """
-    Delete a plan from the catalog by id.
-
-    Note: Consider using is_active=0 to deactivate plans instead of deleting,
-    especially if payments or memberships reference this plan.
-
-    Args:
-        plan_id: Positive integer id of the plan to delete.
-
-    Returns:
-        True if the plan was deleted, False if it did not exist.
-
-    Raises:
-        ValueError: If plan_id is not a positive integer.
-        RuntimeError: If the database operation fails.
-    """
-
-    # --- Validate plan_id ---
-    if not isinstance(plan_id, int) or plan_id <= 0:
-        raise ValueError(f"plan_id must be a positive integer, got: {plan_id}")
-
-    # --- Execute delete ---
-    try:
-        with get_connection() as conn:
-            cursor = conn.execute(
-                "DELETE FROM plans WHERE id = ?",
-                (plan_id,)
-            )
-            conn.commit()
-
-            if cursor.rowcount == 0:
-                logger.warning("No plan found with id=%s", plan_id)
-                return False
-
-            logger.info("Plan deleted: id=%s", plan_id)
-            return True
-
-    except Exception as e:
-        logger.exception("Failed to delete plan id=%s", plan_id)
-        raise RuntimeError(f"Failed to delete plan: {e}") from e
 
 def update_plan(plan_id: int, **kwargs: Any) -> bool:
     """
@@ -289,7 +248,7 @@ def update_plan(plan_id: int, **kwargs: Any) -> bool:
                 f"UPDATE plans SET {set_clause} WHERE id = ?",
                 values
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No plan found with id=%s", plan_id)
@@ -306,3 +265,199 @@ def update_plan(plan_id: int, **kwargs: Any) -> bool:
         logger.exception("Failed to update plan id=%s", plan_id)
         raise RuntimeError(f"Failed to update plan: {e}") from e
 
+def delete_plan(plan_id: int) -> bool:
+    """
+    Delete a plan by id.
+
+    Intended for correcting mistakes (duplicate rows, typo'd entries).
+    To retire a plan that has been used, deactivate it with
+    update_plan(plan_id, is_active=0) instead — that hides it from new
+    memberships while preserving the plan for historical references.
+
+    A plan that is referenced by any membership cannot be deleted
+    (ON DELETE RESTRICT). The FK must be cleared first — either by
+    deleting the memberships that use this plan, or by deactivating
+    the plan instead.
+
+    Args:
+        plan_id: Positive integer id of the plan to delete.
+
+    Returns:
+        True if the plan was deleted, False if the id did not exist.
+
+    Raises:
+        ValueError: If plan_id is not a positive integer, or the plan
+            is referenced by at least one membership.
+        RuntimeError: If the database operation fails.
+    """
+
+    if isinstance(plan_id, bool) or not isinstance(plan_id, int) or plan_id <= 0:
+        raise ValueError(
+            f"plan_id must be a positive integer, got: {plan_id!r}"
+        )
+
+    try:
+        with get_connection() as conn:
+            cursor = conn.execute(
+                "DELETE FROM plans WHERE id = ?",
+                (plan_id,),
+            )
+            
+
+            if cursor.rowcount == 0:
+                logger.warning("No plan found with id=%s", plan_id)
+                return False
+
+        logger.info("Plan deleted: id=%s", plan_id)
+        return True
+
+    except sqlite3.IntegrityError as e:
+        # FK violation from memberships.plan_id.
+        logger.warning(
+            "Cannot delete plan id=%s: referenced by memberships", plan_id
+        )
+        raise ValueError(
+            "This plan has been used in memberships and cannot be deleted. "
+            "Deactivate it instead."
+        ) from e
+
+    except sqlite3.Error as e:
+        logger.exception("Failed to delete plan id=%s", plan_id)
+        raise RuntimeError(f"Failed to delete plan: {e}") from e
+
+def find_plans(
+    search_term: Optional[str] = None,
+    **kwargs: Any,
+) -> List[Dict[str, Any]]:
+    """
+    Search for plans, or list them all if no arguments are given.
+
+    Each returned row includes a `membership_count` field: how many
+    membership rows reference this plan. That's what the delete form
+    uses to decide whether to offer a delete button at all.
+
+    Supports:
+        - Exact match on plan id
+        - Partial match on plan name (case-insensitive)
+
+    Filters (all optional, AND-ed with the search term):
+        - is_active     (0 or 1)
+        - is_single     (0 or 1)
+        - is_unlimited  (0 or 1)
+
+    Args:
+        search_term: String to search for. If None or empty, the term
+            is ignored and only filters apply.
+        **kwargs: Optional filters. Passing None for a filter skips it.
+
+    Returns:
+        List of matching plan records as dictionaries.
+
+    Raises:
+        ValueError: If search_term is not a string/None, a filter name
+            is unknown, or a filter value is invalid.
+        RuntimeError: If the database operation fails.
+    """
+
+    # --- Normalize search_term ---
+    if search_term is not None:
+        if not isinstance(search_term, str):
+            raise ValueError(
+                f"search_term must be a string or None, got: {search_term!r}"
+            )
+        search_term = search_term.strip() or None
+
+    # --- Detect unknown filters ---
+    unknown = set(kwargs) - ALLOWED_PLAN_FILTERS
+    if unknown:
+        raise ValueError(f"Unknown filters: {unknown}")
+
+    # --- Validate filter values ---
+    for flag in ('is_active', 'is_single', 'is_unlimited'):
+        if kwargs.get(flag) is not None:
+            value = kwargs[flag]
+            if isinstance(value, bool) or value not in (0, 1):
+                raise ValueError(f"{flag} must be 0 or 1, got: {value!r}")
+
+    # --- Build WHERE clause dynamically (may end up empty) ---
+    where_parts: List[str] = []
+    params: List[Any] = []
+
+    # Term clauses: only if a term was actually given.
+    if search_term is not None:
+        plan_id = None
+        try:
+            plan_id = int(search_term)
+        except ValueError:
+            pass
+
+        term_clauses = []
+        if plan_id is not None:
+            term_clauses.append("id = ?")
+            params.append(plan_id)
+        term_clauses.append("name LIKE ? COLLATE NOCASE")
+        params.append(f"%{search_term}%")
+        where_parts.append("(" + " OR ".join(term_clauses) + ")")
+
+    # Filter clauses: skip any that are None.
+    for field, value in kwargs.items():
+        if value is None:
+            continue
+        where_parts.append(f"{field} = ?")
+        params.append(value)
+
+    where_sql = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
+
+    query = f"""
+        SELECT
+            p.id,
+            p.name,
+            p.price,
+            p.duration_weeks,
+            p.max_trainings,
+            p.is_unlimited,
+            p.is_single,
+            p.is_active,
+            p.created_at,
+            p.updated_at,
+            (
+                SELECT COUNT(*)
+                FROM memberships m
+                WHERE m.plan_id = p.id
+            ) AS membership_count
+        FROM plans p
+        {where_sql}
+        ORDER BY p.is_active DESC, p.name
+    """
+
+    try:
+        with get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, params)
+            rows = cursor.fetchall()
+
+            if not rows:
+                logger.info(
+                    "No plans found: term=%s, filters=%s",
+                    search_term,
+                    kwargs,
+                )
+                return []
+
+            results = [dict(row) for row in rows]
+
+            logger.info(
+                "Plan search: term=%s, filters=%s, results=%d",
+                search_term,
+                kwargs,
+                len(results),
+            )
+            return results
+
+    except Exception as e:
+        logger.exception(
+            "Failed to search plans: term=%s, filters=%s",
+            search_term,
+            kwargs,
+        )
+        raise RuntimeError(f"Failed to search plans: {e}") from e

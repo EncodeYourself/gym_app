@@ -4,7 +4,7 @@ import sqlite3
 from app.crud import plans
 import datetime
 from app.interface.utils.logging import get_logger
-
+from app.interface.config import DB_PATH
 logger = get_logger(__name__)
 
 defaults = {
@@ -30,8 +30,8 @@ st.set_page_config(
     page_icon="👨‍🎓",
     layout="wide"
 )
-# Hardcoded database path
-DB_PATH = "app/data/business.db"
+
+
 
 # Helper function to load data
 def load_table_data(db_path, table_name):
@@ -134,7 +134,7 @@ if st.session_state.show_add_form:
                 max_trainings = None
             else:  # single
                 duration_weeks = None
-                max_trainings = None
+                max_trainings = 1
                 st.caption("Single sessions have no duration and no training cap.")
 
             is_active = st.checkbox("Active", value=True)

@@ -94,6 +94,15 @@ def add_student(
             raise ValueError(
                 f"telegram_handle must be a non-empty string, got: {value!r}"
             )
+        value = value.strip()
+
+        if not value or value == "@":
+            updates['telegram_handle'] = None
+    
+        elif not value.startswith("@"):
+            updates['telegram_handle'] = "@" + value
+        else:
+            updates['telegram_handle'] = value
 
     if 'address' in updates and updates['address'] is not None:
         value = updates['address']
@@ -141,7 +150,7 @@ def add_student(
     try:
         with get_connection() as conn:
             cursor = conn.execute(query, list(updates.values()))
-            conn.commit()
+            
             new_id = cursor.lastrowid
 
         logger.info(
@@ -224,6 +233,14 @@ def update_student(student_id: int, **kwargs: Any) -> bool:
             raise ValueError(
                 f"telegram_handle must be a non-empty string, got: {value!r}"
             )
+        value = value.strip()
+
+        if not value or value == "@":
+            updates['telegram_handle'] = None
+        elif not value.startswith("@"):
+            updates['telegram_handle'] = "@" + value
+        else:
+            updates['telegram_handle'] = value
 
     if 'address' in updates and updates['address'] is not None:
         value = updates['address']
@@ -272,7 +289,7 @@ def update_student(student_id: int, **kwargs: Any) -> bool:
                 f"UPDATE students SET {set_clause} WHERE id = ?",
                 values
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No student found with id=%s", student_id)
@@ -313,7 +330,7 @@ def delete_student(student_id):
                 "DELETE FROM students WHERE id = ?",
                 (student_id,)
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No student found with id=%s", student_id)
@@ -531,7 +548,7 @@ def adjust_credit(student_id: int, delta: int, reason: str = '') -> int:
             ).fetchone()
             new_balance = row[0]
 
-            conn.commit()
+            
 
         logger.info(
             "Credit adjusted: student_id=%s, delta=%s, new_balance=%s, reason=%s",

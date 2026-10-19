@@ -1,12 +1,27 @@
-
 import app.crud.students as students
 import app.crud.classes as classes
 import app.crud.attendance as attendance
+import app.crud.memberships as memberships
 import sqlite3
 import datetime
 import polars as pl
 import streamlit as st
 from app.interface.utils.logging import get_logger
+
+ATTENDANCE_DISPLAY_COLUMNS = [
+    "attendance_date",
+    "student_last_name",
+    "student_first_name",
+    "student_phone",
+    "class_name",
+    "class_day",
+    "class_time",
+    "attendance_type",
+    "membership_id",
+    "notes",
+]
+MIN_DATE = datetime.date(1970, 1, 1)
+MAX_DATE = datetime.date.today()
 
 logger = get_logger(__name__)
 
@@ -20,8 +35,6 @@ defaults = {
     "edit_row_id": None,
 }
 
-MIN_DATE = datetime.date(1970, 1, 1)
-MAX_DATE = datetime.date.today()
 
 for key, value in defaults.items():
     if key not in st.session_state:
@@ -36,35 +49,8 @@ st.set_page_config(
 # Hardcoded database path
 DB_PATH = "app/data/business.db"
 
-# Helper function to load data
-def load_table_data(db_path):
-    conn = sqlite3.connect(db_path)
-    query = f'''SELECT
-    a.student_id,
-    s.last_name   AS student_last_name,
-    s.first_name  AS student_first_name,
-    a.class_id,
-    c.name        AS class_name,
-    a.attendance_date,
-    a.attendance_type,
-    a.notes,
-    s.phone       AS student_phone,
-    c.schedule_day AS class_day,
-    c.start_time  AS class_time,
-    a.id,
-    a.created_at
-    FROM attendance a
-    JOIN students s ON s.id = a.student_id
-    JOIN classes  c ON c.id = a.class_id
-    ORDER BY a.attendance_date DESC, a.id DESC'''
-    df = pl.read_database(query, conn)
-    conn.close()
-    return df
-
-
-
 with st.sidebar:
-    if st.button("🔎 Search People"):
+    if st.button("🔎 Search Attendance"):
         st.session_state.show_search = not st.session_state.show_search
         
         if not st.session_state.show_search:
@@ -86,7 +72,8 @@ with st.sidebar:
                         st.warning("Please enter a search term.")
                     else:
                         with st.spinner("Searching..."):
-                            results = students.find_students(search_term.strip())
+                            results = attendance.find_attendance(search_term.strip())
+                        #st.write(results[0].keys() if results else "no results")
                         st.session_state.search_results = results
     
     if st.button("Add Attendance"):
@@ -117,10 +104,24 @@ if st.session_state.show_add_form:
         st.write("### Take Attendance")
         st.markdown("*Required fields are marked with **`*`**")
 
-        # Reset counter used to clear all widgets after a successful save.
         if 'attendance_form_counter' not in st.session_state:
             st.session_state.attendance_form_counter = 0
         ver = st.session_state.attendance_form_counter
+
+        # --- Date (OUTSIDE form: changing it reloads classes below) ---
+        attendance_date = st.date_input(
+            "Date **`*`**",
+            value=datetime.date.today(),
+            min_value=MIN_DATE,
+            max_value=MAX_DATE,
+            key=f"attendance_date_{ver}",
+        )
+
+        DAY_NAMES = [
+            "Monday", "Tuesday", "Wednesday", "Thursday",
+            "Friday", "Saturday", "Sunday",
+        ]
+        day_name = DAY_NAMES[attendance_date.weekday()]
 
         # --- Group filter (OUTSIDE form: changing it must reload students) ---
         group_type = st.radio(
@@ -130,7 +131,7 @@ if st.session_state.show_add_form:
             key=f"attendance_group_{ver}",
         )
 
-        # --- Load students for the selected group ---
+        # --- Load students ---
         try:
             students_list = students.find_students(group_type=group_type)
         except Exception as e:
@@ -139,119 +140,129 @@ if st.session_state.show_add_form:
 
         students_by_id = {s["id"]: s for s in students_list}
 
-        # --- Load classes once ---
+        # --- Load classes for the selected day only ---
         try:
-            classes_list = classes.find_classes()
+            classes_list = classes.find_classes(
+                schedule_day=day_name,
+                is_active=1,
+            )
         except Exception as e:
             st.error(f"Could not load classes: {e}")
             classes_list = []
 
         classes_by_id = {c["id"]: c for c in classes_list}
 
-        with st.form(f"add_attendance_form_{ver}"):
-            # --- Class selection ---
-            if classes_by_id:
+        st.caption(f"Showing classes scheduled on **{day_name}**.")
+
+        if not classes_by_id:
+            st.warning(
+                f"No active classes scheduled on **{day_name}**. "
+                f"Pick a different date, or add a class for {day_name} "
+                f"before taking attendance."
+            )
+        else:
+            with st.form(f"add_attendance_form_{ver}"):
+                # --- Class selection ---
                 class_id = st.selectbox(
                     "Class **`*`**",
                     options=list(classes_by_id),
                     format_func=lambda cid: (
-                        f'{classes_by_id[cid].get("schedule_day", "")} '
                         f'{classes_by_id[cid].get("start_time", "")} — '
                         f'{classes_by_id[cid].get("name", "")}'
-                    ),
-                )
-            else:
-                st.warning("No classes available. Add a class first.")
-                class_id = None
-
-            # --- Date ---
-            attendance_date = st.date_input(
-                "Date **`*`**",
-                value=datetime.date.today(),
-                min_value=MIN_DATE,
-                max_value=MAX_DATE,
-            )
-
-            # --- Student multiselect ---
-            if students_by_id:
-                selected_ids = st.multiselect(
-                    "Students present **`*`**",
-                    options=list(students_by_id),
-                    format_func=lambda sid: (
-                        f'{students_by_id[sid]["last_name"]} '
-                        f'{students_by_id[sid]["first_name"]} '
-                        f'({students_by_id[sid].get("phone") or "no phone"})'
-                    ),
-                    help="Type to search by last name, first name, or phone.",
-                )
-            else:
-                st.info(f"No active {group_type} students found.")
-                selected_ids = []
-
-            # --- Buttons ---
-            col_btn1, col_btn2 = st.columns(2)
-            with col_btn1:
-                submitted = st.form_submit_button(
-                    "💾 Save Attendance", use_container_width=True
-                )
-            with col_btn2:
-                if st.form_submit_button("❌ Cancel", use_container_width=True):
-                    st.session_state.show_add_attendance_form = False
-                    st.rerun()
-
-            # --- Submit ---
-            if submitted:
-                if class_id is None:
-                    st.error("No class selected.")
-                elif not selected_ids:
-                    st.error("Select at least one student.")
-                else:
-                    saved, skipped, failed = 0, 0, []
-
-                    for sid in selected_ids:
-                        try:
-                            attendance.add_attendance(
-                                student_id=sid,
-                                class_id=class_id,
-                                attendance_date=attendance_date.isoformat(),
-                                attendance_type="membership",
-                            )
-                            saved += 1
-                        except ValueError:
-                            # e.g. UNIQUE(student_id, class_id, attendance_date)
-                            # already exists — treat as "already marked present"
-                            skipped += 1
-                        except Exception as e:
-                            failed.append((sid, str(e)))
-
-                    if failed:
-                        st.error(
-                            f"Saved {saved}, skipped {skipped} already-marked, "
-                            f"but {len(failed)} failed."
+                        + (
+                            f' ({classes_by_id[cid]["trainer_name"]})'
+                            if classes_by_id[cid].get("trainer_name")
+                            else ""
                         )
-                        for sid, msg in failed:
-                            s = students_by_id.get(sid, {})
-                            st.caption(
-                                f"• {s.get('last_name','?')} "
-                                f"{s.get('first_name','?')}: {msg}"
-                            )
-                    else:
-                        msg = f"✅ Saved attendance for {saved} student(s)."
-                        if skipped:
-                            msg += f" ({skipped} already marked present.)"
-                        st.success(msg)
+                    ),
+                )
 
-                        st.session_state.show_add_attendance_form = False
-                        st.session_state.attendance_form_counter += 1
+                # --- Student multiselect ---
+                if students_by_id:
+                    selected_ids = st.multiselect(
+                        "Students present **`*`**",
+                        options=list(students_by_id),
+                        format_func=lambda sid: (
+                            f'{students_by_id[sid]["last_name"]} '
+                            f'{students_by_id[sid]["first_name"]} '
+                            f'({students_by_id[sid].get("phone") or "no phone"})'
+                        ),
+                        help="Type to search by last name, first name, or phone.",
+                        accept_new_options=True,
+                    )
+                else:
+                    st.info(f"No active {group_type} students found.")
+                    selected_ids = []
+
+                type_options = ['membership', 'trial', 'debt']
+                attendance_type = st.radio(
+                    'Attendance Type',
+                    type_options,
+                    horizontal=True,
+                    index=0,
+                )
+
+                # --- Buttons ---
+                col_btn1, col_btn2 = st.columns(2)
+                with col_btn1:
+                    submitted = st.form_submit_button(
+                        "💾 Save Attendance", width='stretch'
+                    )
+                with col_btn2:
+                    if st.form_submit_button("❌ Cancel", width='stretch'):
+                        st.session_state.show_add_form = False
                         st.rerun()
 
-   
+                if submitted:
+                    if class_id is None:
+                        st.error("No class selected.")
+                    elif not selected_ids:
+                        st.error("Select at least one student.")
+                    else:
+                        saved, skipped, failed = 0, 0, []
+
+                        for sid in selected_ids:
+                            try:
+                                attendance.record_attendance(
+                                    student_id=sid,
+                                    class_id=class_id,
+                                    attendance_date=attendance_date.isoformat(),
+                                    attendance_type=attendance_type,
+                                )
+                                saved += 1
+                            except ValueError:
+                                skipped += 1
+                            except Exception as e:
+                                failed.append((sid, str(e)))
+
+                        if failed:
+                            st.error(
+                                f"Saved {saved}, skipped {skipped} already-marked, "
+                                f"but {len(failed)} failed."
+                            )
+                            for sid, msg in failed:
+                                s = students_by_id.get(sid, {})
+                                st.caption(
+                                    f"• {s.get('last_name','?')} "
+                                    f"{s.get('first_name','?')}: {msg}"
+                                )
+                        else:
+                            msg = f"✅ Saved attendance for {saved} student(s)."
+                            if skipped:
+                                msg += f" ({skipped} already marked present.)"
+                            st.success(msg)
+
+                            st.session_state.show_add_form = False
+                            st.session_state.attendance_form_counter += 1
+                            st.rerun()
+
 # --- Display table with row selection ---
 active_df = None
 event = None
 
 if st.session_state.search_results is None:
-    active_df = load_table_data(DB_PATH)
+    rows = attendance.find_attendance()
+    active_df = pl.DataFrame(rows) if rows else pl.DataFrame()
     event = st.dataframe(
         active_df,
         selection_mode="single-row",
@@ -260,13 +271,14 @@ if st.session_state.search_results is None:
     )
 else:
     if len(st.session_state.search_results) > 0:
-        active_df = pl.DataFrame(
-            st.session_state.search_results,
-            schema=attendance.ALLOWED_ATTENDANCE_FIELDS,
-            orient="row",
+        active_df = pl.DataFrame(st.session_state.search_results)
+
+        display_df = active_df.select(
+        [c for c in ATTENDANCE_DISPLAY_COLUMNS if c in active_df.columns]
         )
+        
         event = st.dataframe(
-            active_df,
+            display_df,
             selection_mode="single-row",
             on_select="rerun",
             key="search_table",
@@ -414,10 +426,10 @@ if st.session_state.show_edit_form:
                 col_btn1, col_btn2 = st.columns(2)
                 with col_btn1:
                     submitted = st.form_submit_button(
-                        "💾 Update Attendance", use_container_width=True
+                        "💾 Update Attendance", width='stretch'
                     )
                 with col_btn2:
-                    if st.form_submit_button("❌ Cancel", use_container_width=True):
+                    if st.form_submit_button("❌ Cancel", width='stretch'):
                         st.session_state.show_edit_form = False
                         st.session_state.selected_row_id = None
                         st.session_state.edit_row_id = None
@@ -489,7 +501,7 @@ if st.session_state.show_delete_form:
 
         col_btn1, col_btn2, col_btn3 = st.columns(3)
         with col_btn1:
-            if st.button("🗑️ Yes, Delete", use_container_width=True, type="primary"):
+            if st.button("🗑️ Yes, Delete", width='stretch', type="primary"):
                 try:
                     attendance.delete_attendance(attendance_id)
                     st.success("✅ Attendance record deleted successfully!")
@@ -501,6 +513,6 @@ if st.session_state.show_delete_form:
                     st.error(f"Error deleting attendance: {e}")
 
         with col_btn2:
-            if st.button("❌ Cancel", use_container_width=True):
+            if st.button("❌ Cancel", width='stretch'):
                 st.session_state.show_delete_form = False
                 st.rerun()

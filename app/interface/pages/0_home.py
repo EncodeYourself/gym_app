@@ -1,6 +1,6 @@
 import streamlit as st
 
-from app.interface.config import APP_NAME, APP_ICON
+from app.interface.config import APP_NAME
 from app.interface.ui.sidebar import render_grouped_sidebar
 #from database.metadata import get_table_names
 from app.interface.utils.logging import get_logger, setup_logging
@@ -8,7 +8,6 @@ from app.interface.utils.logging import get_logger, setup_logging
 
 st.set_page_config(
     page_title=APP_NAME,
-    page_icon=APP_ICON,
     layout="wide",
 )
 
@@ -17,7 +16,7 @@ logger = get_logger(__name__)
 
 
 
-st.title(f"{APP_ICON} {APP_NAME}")
+st.title(f"{APP_NAME}")
 
 col1, col2 = st.columns([2, 1])
 

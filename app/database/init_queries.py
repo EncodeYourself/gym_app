@@ -44,14 +44,15 @@ TABLE_CLASSES = '''
 CREATE TABLE IF NOT EXISTS classes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    instructor TEXT NOT NULL,
+    instructor_id INTEGER,
     schedule_day TEXT NOT NULL CHECK (schedule_day IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')),
     start_time TEXT NOT NULL CHECK (start_time GLOB '[0-2][0-9]:[0-5][0-9]' AND start_time <= '23:59'),   
     duration_minutes INTEGER DEFAULT 90,
     description TEXT,
     is_active INTEGER DEFAULT 1 NOT NULL CHECK (is_active IN (0,1)),
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (instructor_id) REFERENCES trainers(id) ON DELETE RESTRICT
 );'''
 
 
@@ -60,6 +61,8 @@ CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
     amount_paid INTEGER NOT NULL CHECK (amount_paid >= 0),
+    plan_id INTEGER,
+    membership_id INTEGER, 
     payment_date TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     method TEXT NOT NULL CHECK (method IN ('cash', 'card', 'bank_transfer', 'other')),
     payment_category TEXT NOT NULL DEFAULT 'membership_new'
@@ -73,10 +76,10 @@ CREATE TABLE IF NOT EXISTS payments (
         CHECK (status IN ('paid', 'refunded', 'voided')),
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT
-);
-'''
-
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT,
+    FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE RESTRICT,
+    FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE RESTRICT
+);'''
 
 TABLE_NOTES = '''
 CREATE TABLE IF NOT EXISTS notes (
@@ -143,6 +146,7 @@ CREATE TABLE IF NOT EXISTS memberships (
     UNIQUE (upgraded_from)
 );
 '''
+
 INDEX_MEMBERSHIP = '''
 CREATE INDEX IF NOT EXISTS idx_memberships_student
     ON memberships(student_id);
@@ -155,38 +159,57 @@ CREATE TABLE IF NOT EXISTS attendance (
     class_id INTEGER NOT NULL,
     attendance_date DATE NOT NULL,
     attendance_type TEXT NOT NULL DEFAULT 'membership' CHECK (attendance_type IN ('membership', 'single', 'debt', 'trial')),
+    membership_id INTEGER, 
     notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT,
     FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE RESTRICT,
+    FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE SET NULL,
     UNIQUE(student_id, class_id, attendance_date)
 );'''
 
+INDEX_ATTENDANCE_1 = '''
+    CREATE INDEX idx_attendance_membership ON attendance(membership_id)
+'''
+INDEX_ATTENDANCE_2 = '''
+CREATE INDEX IF NOT EXISTS idx_attendance_class_date
+    ON attendance(class_id, attendance_date);
+'''
+INDEX_ATTENDANCE_3 = '''
+CREATE INDEX IF NOT EXISTS idx_attendance_class_date
+    ON attendance(class_id, attendance_date);
+'''
+INDEX_ATTENDANCE_4 = '''
+CREATE INDEX IF NOT EXISTS idx_substitutions_class_date
+    ON substitutions(class_id, date);
+'''
 TABLE_EXPENSES = '''
 CREATE TABLE IF NOT EXISTS expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    expense_date TEXT NOT NULL,              -- YYYY-MM-DD
+    payee_id INTEGER NOT NULL,
+    expense_date TEXT NOT NULL,
     category TEXT NOT NULL
         CHECK (category IN (
-            'rent',
-            'utilities',
-            'cleaning',
-            'salary',
-            'equipment',
-            'repairs',
-            'marketing',
-            'taxes',
-            'other'
+            'rent', 'utilities', 'cleaning', 'salary', 'equipment',
+            'repairs', 'marketing', 'taxes', 'other'
         )),
     amount INTEGER NOT NULL CHECK (amount >= 0),
-    is_recurring INTEGER NOT NULL DEFAULT 0
-        CHECK (is_recurring IN (0,1)),
-    recurring_expense_id INTEGER,            -- NULL for manual/non-recurring expenses
+    recurring_expense_id INTEGER,
     notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-    FOREIGN KEY (recurring_expense_id) REFERENCES recurring_expenses(id) ON DELETE SET NULL
+    FOREIGN KEY (payee_id) REFERENCES payees(id) ON DELETE RESTRICT,
+    FOREIGN KEY (recurring_expense_id) REFERENCES recurring_expenses(id) ON DELETE RESTRICT
 );'''
+
+INDEX_EXPENSES_DATE  = '''
+CREATE INDEX IF NOT EXISTS idx_expenses_date
+    ON expenses(expense_date);
+'''
+INDEX_EXPENSES_PAYEE = '''
+CREATE INDEX IF NOT EXISTS idx_expenses_payee
+    ON expenses(payee_id);
+'''
 
 TABLE_REC_EXPENSES = '''
 CREATE TABLE IF NOT EXISTS recurring_expenses (
@@ -206,7 +229,8 @@ CREATE TABLE IF NOT EXISTS recurring_expenses (
         )),
     amount INTEGER NOT NULL CHECK (amount >= 0),
     frequency TEXT NOT NULL DEFAULT 'monthly'
-        CHECK (frequency IN ('weekly', 'monthly', 'quarterly', 'yearly')),
+        CHECK (frequency IN ('weekly', 'monthly', 'quarterly', 'yearly')
+    ),
     day_of_month INTEGER CHECK (
         day_of_month IS NULL OR
         (day_of_month >= 1 AND day_of_month <= 31)
@@ -222,6 +246,27 @@ CREATE TABLE IF NOT EXISTS recurring_expenses (
     updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );'''
 
+TABLE_PAYEES = '''CREATE TABLE IF NOT EXISTS payees (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,                    -- always filled, even for trainer-linked rows
+    linked_trainer_id INTEGER,                    -- NULL for external vendors
+    preferred_category TEXT
+        CHECK (preferred_category IS NULL OR preferred_category IN (
+            'rent', 'utilities', 'cleaning', 'salary', 'equipment',
+            'repairs', 'marketing', 'taxes', 'other'
+        )),
+    is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+    notes TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY (linked_trainer_id) REFERENCES trainers(id) ON DELETE RESTRICT
+);'''
+
+INDEX_PAYEES = '''
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payees_trainer
+    ON payees(linked_trainer_id) WHERE linked_trainer_id IS NOT NULL;
+'''
+
 TABLE_SUBSTITUTIONS = '''
 CREATE TABLE IF NOT EXISTS substitutions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -234,51 +279,38 @@ CREATE TABLE IF NOT EXISTS substitutions (
     FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
     FOREIGN KEY (original_trainer_id) REFERENCES trainers(id) ON DELETE RESTRICT,
     FOREIGN KEY (substitute_trainer_id) REFERENCES trainers(id) ON DELETE RESTRICT
-);
-'''
+);'''
 
-TABLE_CREDIT  = '''CREATE TABLE IF NOT EXISTS student_credits (
+
+TABLE_CREDIT = '''
+CREATE TABLE IF NOT EXISTS credit_entries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
-    amount INTEGER NOT NULL,              -- + add, − consume
-    reason TEXT,
-    payment_id INTEGER,                   -- optional link to the payment that caused it
+    amount INTEGER NOT NULL,          
+    entry_type TEXT NOT NULL
+        CHECK (entry_type IN (
+            'overpayment',
+            'underpayment',
+            'credit_applied',
+            'debt_settled',
+            'refund',
+            'manual_adjustment',
+            'reversal'
+        )),
+    payment_id INTEGER,               
+    membership_id INTEGER,            
+    notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE RESTRICT,
-    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL
-);
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL,
+    FOREIGN KEY (membership_id) REFERENCES memberships(id) ON DELETE SET NULL
+);'''
+
+INDEX_CREDIT = '''
+CREATE INDEX IF NOT EXISTS idx_credit_entries_student
+    ON credit_entries(student_id);
 '''
-# VIEW_CASHFLOW = '''
-# CREATE VIEW cashflow AS
-# SELECT
-#     'income' AS type,
-#     payment_date AS date,
-#     amount_paid AS amount,
-#     method AS method,
-#     notes
-# FROM payments
 
-# UNION ALL
-
-# SELECT
-#     'expense' AS type,
-#     expense_date AS date,
-#     amount,
-#     NULL AS method,
-#     notes
-# FROM expenses;
-# '''
-
-#NOT_SURE = '''
-#SELECT
-#    strftime('%Y-%m', date) AS month,
-#    SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
-#    SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expenses,
-#    SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) AS net
-#FROM cashflow
-#GROUP BY month
-#ORDER BY month;
-#'''
 TABLE_HOLDS = '''
 CREATE TABLE IF NOT EXISTS membership_holds (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

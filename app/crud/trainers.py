@@ -22,7 +22,7 @@ ALLOWED_TRAINER_FIELDS = {
 VALID_ROLES = {'coach', 'admin', 'other'}
 VALID_PAY_TYPES = {'hourly', 'per_class', 'per_session', 'salary', 'volunteer'}
 VALID_STATUS = {'active', 'inactive'}
-
+ALLOWED_TRAINER_FILTERS = {'status', 'role', 'pay_type'}
 def add_trainer(
     first_name: str,
     last_name: str,
@@ -131,7 +131,7 @@ def add_trainer(
     try:
         with get_connection() as conn:
             cursor = conn.execute(query, list(updates.values()))
-            conn.commit()
+            
             new_id = cursor.lastrowid
 
         logger.info(
@@ -253,7 +253,7 @@ def update_trainer(trainer_id: int, **kwargs: Any) -> bool:
                 f"UPDATE trainers SET {set_clause} WHERE id = ?",
                 values
             )
-            conn.commit()
+            
 
             if cursor.rowcount == 0:
                 logger.warning("No trainer found with id=%s", trainer_id)
@@ -275,47 +275,58 @@ def delete_trainer(trainer_id: int) -> bool:
     Delete a trainer by id.
 
     Intended for correcting mistakes (duplicate entries, typo'd rows).
-    For trainers who have taught classes or been involved in substitutions,
-    prefer update_trainer(trainer_id, status='inactive') to preserve history.
+    For trainers who have been assigned to classes or involved in
+    substitutions, prefer update_trainer(trainer_id, status='inactive')
+    to preserve history — the FK constraint will reject the delete anyway.
 
     Raises:
         ValueError: If trainer_id is invalid, or the trainer is referenced
-            by other records (substitutions, classes, etc.).
+            by other records (classes, substitutions).
         RuntimeError: If the database operation fails.
     """
 
-    if not isinstance(trainer_id, int) or trainer_id <= 0:
-        raise ValueError(f"trainer_id must be a positive integer, got: {trainer_id}")
+    if isinstance(trainer_id, bool) or not isinstance(trainer_id, int) or trainer_id <= 0:
+        raise ValueError(
+            f"trainer_id must be a positive integer, got: {trainer_id!r}"
+        )
 
     try:
         with get_connection() as conn:
             cursor = conn.execute(
                 "DELETE FROM trainers WHERE id = ?",
-                (trainer_id,)
+                (trainer_id,),
             )
-            conn.commit()
 
             if cursor.rowcount == 0:
                 logger.warning("No trainer found with id=%s", trainer_id)
                 return False
 
-            logger.info("Trainer deleted: id=%s", trainer_id)
-            return True
+        # Commit happens on context exit. Log only after durability.
+        logger.info("Trainer deleted: id=%s", trainer_id)
+        return True
 
     except sqlite3.IntegrityError as e:
-        logger.warning("Cannot delete trainer id=%s: referenced by other records", trainer_id)
+        logger.warning(
+            "Cannot delete trainer id=%s: referenced by other records",
+            trainer_id,
+        )
         raise ValueError(
-            f"Trainer {trainer_id} has associated records and cannot be deleted. "
-            f"Mark them inactive instead."
+            f"Trainer {trainer_id} is assigned to classes or substitutions "
+            f"and cannot be deleted. Mark them inactive instead."
         ) from e
 
     except sqlite3.Error as e:
         logger.exception("Failed to delete trainer id=%s", trainer_id)
         raise RuntimeError(f"Failed to delete trainer: {e}") from e
 
-def search_trainers(search_term: str) -> List[Dict[str, Any]]:
+
+
+def find_trainers(
+    search_term: Optional[str] = None,
+    **kwargs: Any,
+) -> List[Dict[str, Any]]:
     """
-    Search for trainers by id, first name, or last name.
+    Search for trainers, or list them all if no arguments are given.
 
     Supports:
         - Exact match on trainer id
@@ -323,29 +334,102 @@ def search_trainers(search_term: str) -> List[Dict[str, Any]]:
         - Partial match on last name (case-insensitive)
         - Partial match on phone (case-insensitive)
 
+    Filters (all optional, AND-ed with the search term):
+        - status   ('active', 'inactive')
+        - role     ('coach', 'assistant', 'cutman', 'admin', 'other')
+        - pay_type ('hourly', 'per_class', 'per_session', 'salary',
+                    'volunteer', 'other')
+
     Args:
-        search_term: String to search for. Can be a numeric id or a name.
+        search_term: String to search for. If None or empty, the term
+            is ignored and only filters apply.
+        **kwargs: Optional filters. Passing None for a filter skips it.
 
     Returns:
-        List of matching trainer records as dictionaries.
+        List of matching trainer records as dictionaries. If no
+        search_term and no filters are provided, returns all trainers.
 
     Raises:
-        ValueError: If search_term is empty or invalid.
+        ValueError: If search_term is not a string/None, a filter name
+            is unknown, or a filter value is invalid.
         RuntimeError: If the database operation fails.
     """
 
-    if not isinstance(search_term, str) or not search_term.strip():
-        raise ValueError(f"search_term must be a non-empty string, got: {search_term!r}")
+    # --- Normalize search_term ---
+    if search_term is not None:
+        if not isinstance(search_term, str):
+            raise ValueError(
+                f"search_term must be a string or None, got: {search_term!r}"
+            )
+        search_term = search_term.strip() or None
 
-    search_term = search_term.strip()
+    # --- Detect unknown filters ---
+    unknown = set(kwargs) - ALLOWED_TRAINER_FILTERS
+    if unknown:
+        raise ValueError(f"Unknown filters: {unknown}")
 
-    trainer_id = None
-    try:
-        trainer_id = int(search_term)
-    except ValueError:
-        pass
+    # --- Validate filter values ---
+    if kwargs.get('status') is not None:
+        value = kwargs['status']
+        if value not in VALID_STATUS:
+            raise ValueError(
+                f"Invalid status: {value}. "
+                f"Expected one of: {sorted(VALID_STATUS)}"
+            )
 
-    query = """
+    if kwargs.get('role') is not None:
+        value = kwargs['role']
+        if value not in VALID_ROLES:
+            raise ValueError(
+                f"Invalid role: {value}. "
+                f"Expected one of: {sorted(VALID_ROLES)}"
+            )
+
+    if kwargs.get('pay_type') is not None:
+        value = kwargs['pay_type']
+        if value not in VALID_PAY_TYPES:
+            raise ValueError(
+                f"Invalid pay_type: {value}. "
+                f"Expected one of: {sorted(VALID_PAY_TYPES)}"
+            )
+
+    # --- Build WHERE clause dynamically (may end up empty) ---
+    where_parts: List[str] = []
+    params: List[Any] = []
+
+    # Term clauses: only if a term was actually given.
+    if search_term is not None:
+        trainer_id = None
+        try:
+            trainer_id = int(search_term)
+        except ValueError:
+            pass
+
+        term_clauses = []
+        if trainer_id is not None:
+            term_clauses.append("id = ?")
+            params.append(trainer_id)
+
+        like = f"%{search_term}%"
+        term_clauses.append("first_name LIKE ? COLLATE NOCASE")
+        params.append(like)
+        term_clauses.append("last_name LIKE ? COLLATE NOCASE")
+        params.append(like)
+        term_clauses.append("phone LIKE ?")
+        params.append(like)
+
+        where_parts.append("(" + " OR ".join(term_clauses) + ")")
+
+    # Filter clauses: skip any that are None.
+    for field, value in kwargs.items():
+        if value is None:
+            continue
+        where_parts.append(f"{field} = ?")
+        params.append(value)
+
+    where_sql = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
+
+    query = f"""
         SELECT
             id,
             last_name,
@@ -361,41 +445,37 @@ def search_trainers(search_term: str) -> List[Dict[str, Any]]:
             created_at,
             updated_at
         FROM trainers
-        WHERE (? IS NOT NULL AND id = ?)
-           OR first_name LIKE ? COLLATE NOCASE
-           OR last_name LIKE ? COLLATE NOCASE
-           OR phone LIKE ?
+        {where_sql}
         ORDER BY last_name, first_name
-        LIMIT 50
     """
-
-    params = (
-        trainer_id,
-        trainer_id,
-        f"%{search_term}%",
-        f"%{search_term}%",
-        f"%{search_term}%",
-    )
 
     try:
         with get_connection() as conn:
-            conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, params)
             rows = cursor.fetchall()
 
             if not rows:
-                logger.info("No trainers found for search term: %s", search_term)
+                logger.info(
+                    "No trainers found: term=%s, filters=%s",
+                    search_term,
+                    kwargs,
+                )
                 return []
 
             results = [dict(row) for row in rows]
 
             logger.info(
-                "Trainer search: term=%s, results=%d",
+                "Trainer search: term=%s, filters=%s, results=%d",
                 search_term,
+                kwargs,
                 len(results),
             )
             return results
 
-    except Exception as e:
-        logger.exception("Failed to search trainers with term=%s", search_term)
+    except sqlite3.Error as e:
+        logger.exception(
+            "Failed to search trainers: term=%s, filters=%s",
+            search_term,
+            kwargs,
+        )
         raise RuntimeError(f"Failed to search trainers: {e}") from e

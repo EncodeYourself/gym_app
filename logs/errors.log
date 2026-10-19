@@ -88,3 +88,397 @@ Traceback (most recent call last):
   File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 294, in search_classes
     cursor = conn.execute(query, params)
 sqlite3.OperationalError: no such column: created_at
+2026-09-29 04:54:59 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Unga Butga
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-09-29 04:55:12 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Unga55 Butga
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-09-29 04:55:23 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Unga55 Butga
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-10-07 12:03:18 | ERROR    | app.crud.payments | payments.py:157 | Failed to add payment: student_id=2, amount=6000
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/payments.py", line 141, in add_payment
+    cursor = conn.execute(query, list(data.values()))
+sqlite3.OperationalError: table payments has no column named plan_id
+2026-10-13 11:26:30 | ERROR    | app.crud.payees | payees.py:482 | Failed to search payees: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/payees.py", line 460, in find_payees
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such table: payees
+2026-10-13 11:32:00 | ERROR    | app.crud.expenses | expenses.py:426 | Failed to search expenses: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/expenses.py", line 404, in find_expenses
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such column: is_recurring
+2026-10-13 11:33:16 | ERROR    | app.crud.expenses | expenses.py:426 | Failed to search expenses: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/expenses.py", line 404, in find_expenses
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such column: is_recurring
+2026-10-13 11:33:20 | ERROR    | app.crud.expenses | expenses.py:426 | Failed to search expenses: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/expenses.py", line 404, in find_expenses
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such column: is_recurring
+2026-10-13 11:36:24 | ERROR    | app.crud.expenses | expenses.py:426 | Failed to search expenses: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/expenses.py", line 404, in find_expenses
+    logger.exception(
+                 ^^^^
+sqlite3.OperationalError: no such column: is_recurring
+2026-10-13 12:11:36 | ERROR    | app.crud.classes | classes.py:74 | Failed to add class for name=Boxing, instructor=Oleoleole, schedule_day=Friday, 
+            start_time=01:45, duration_minutes=90, description=None, is_active=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 61, in add_class
+    cursor = conn.execute(query, list(data.values()))
+sqlite3.OperationalError: table classes has no column named instructor
+2026-10-13 12:11:36 | ERROR    | __main__ | 2_classes.py:228 | Database error while adding class: name=Boxing
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 61, in add_class
+    cursor = conn.execute(query, list(data.values()))
+sqlite3.OperationalError: table classes has no column named instructor
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/pages/2_classes.py", line 198, in <module>
+    new_id = classes.add_class(
+        name=name.strip(),
+    ...<5 lines>...
+        is_active=1 if is_active else 0,
+    )
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 78, in add_class
+    raise RuntimeError(f'Failed to add class: {e}') from e
+RuntimeError: Failed to add class: table classes has no column named instructor
+2026-10-13 12:32:26 | ERROR    | app.crud.classes | classes.py:471 | Failed to search classes: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 449, in find_classes
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such column: instructor
+2026-10-13 12:32:31 | ERROR    | app.crud.classes | classes.py:471 | Failed to search classes: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 449, in find_classes
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such column: instructor
+2026-10-13 12:32:58 | ERROR    | app.crud.classes | classes.py:471 | Failed to search classes: term=None, filters={}
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/classes.py", line 449, in find_classes
+    cursor = conn.execute(query, params)
+sqlite3.OperationalError: no such column: instructor
+2026-10-16 14:41:07 | ERROR    | app.interface.reports._shared | _shared.py:27 | Report query failed (cash_flow)
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/interface/reports/_shared.py", line 23, in run_report_query
+    cursor = conn.execute(query, params)
+sqlite3.ProgrammingError: Incorrect number of bindings supplied. The current statement uses 4, and there are 2 supplied.
+2026-10-18 23:29:21 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Константин Каменский
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-10-18 23:29:25 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Константин Каменский
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-10-18 23:29:26 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Константин Каменский
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-10-18 23:29:26 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Константин Каменский
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-10-18 23:29:28 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Константин Каменский
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-10-18 23:29:30 | ERROR    | app.crud.students | students.py:156 | Failed to add student: Константин Каменский
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/students.py", line 143, in add_student
+    cursor = conn.execute(query, list(updates.values()))
+sqlite3.IntegrityError: UNIQUE constraint failed: students.telegram_handle
+2026-10-19 00:27:47 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 370, in delete_membership
+    successor = conn.execute(
+                ~~~~~~~~~~~~^
+        "SELECT membership_id FROM memberships "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "WHERE upgraded_from = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (membership_id,),
+        ^^^^^^^^^^^^^^^^^
+    ).fetchone()
+    ^
+sqlite3.OperationalError: no such column: membership_id
+2026-10-19 00:27:50 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 370, in delete_membership
+    successor = conn.execute(
+                ~~~~~~~~~~~~^
+        "SELECT membership_id FROM memberships "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "WHERE upgraded_from = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (membership_id,),
+        ^^^^^^^^^^^^^^^^^
+    ).fetchone()
+    ^
+sqlite3.OperationalError: no such column: membership_id
+2026-10-19 00:27:52 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 370, in delete_membership
+    successor = conn.execute(
+                ~~~~~~~~~~~~^
+        "SELECT membership_id FROM memberships "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "WHERE upgraded_from = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (membership_id,),
+        ^^^^^^^^^^^^^^^^^
+    ).fetchone()
+    ^
+sqlite3.OperationalError: no such column: membership_id
+2026-10-19 00:27:53 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 370, in delete_membership
+    successor = conn.execute(
+                ~~~~~~~~~~~~^
+        "SELECT membership_id FROM memberships "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "WHERE upgraded_from = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (membership_id,),
+        ^^^^^^^^^^^^^^^^^
+    ).fetchone()
+    ^
+sqlite3.OperationalError: no such column: membership_id
+2026-10-19 00:28:14 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 370, in delete_membership
+    successor = conn.execute(
+                ~~~~~~~~~~~~^
+        "SELECT membership_id FROM memberships "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "WHERE upgraded_from = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (membership_id,),
+        ^^^^^^^^^^^^^^^^^
+    ).fetchone()
+    ^
+sqlite3.OperationalError: no such column: membership_id
+2026-10-19 00:28:28 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 370, in delete_membership
+    successor = conn.execute(
+                ~~~~~~~~~~~~^
+        "SELECT membership_id FROM memberships "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "WHERE upgraded_from = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (membership_id,),
+        ^^^^^^^^^^^^^^^^^
+    ).fetchone()
+    ^
+sqlite3.OperationalError: no such column: membership_id
+2026-10-19 00:29:56 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 370, in delete_membership
+    successor = conn.execute(
+                ~~~~~~~~~~~~^
+        "SELECT id FROM memberships "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "WHERE upgraded_from = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (membership_id,),
+        ^^^^^^^^^^^^^^^^^
+    ).fetchone()
+    ^
+sqlite3.OperationalError: no such column: membership_id
+2026-10-19 00:30:15 | ERROR    | app.crud.memberships | memberships.py:399 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 385, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:35:29 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:48:11 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:48:12 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:48:53 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=1
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:50:21 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:50:22 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:50:22 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:50:46 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:50:51 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:53:27 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:53:28 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:53:28 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:53:28 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:53:29 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:53:29 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:55:13 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:55:17 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:56:06 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:58:00 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:58:05 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
+2026-10-19 00:58:11 | ERROR    | app.crud.memberships | memberships.py:418 | Failed to delete membership id=2
+Traceback (most recent call last):
+  File "/media/storage/Python/boxing_proj/app/crud/memberships.py", line 391, in delete_membership
+    cursor = conn.execute(
+        "DELETE FROM memberships WHERE id = ?",
+        (membership_id,),
+    )
+sqlite3.OperationalError: no such column: OLD.updated_at
